@@ -1,0 +1,275 @@
+if not (game:IsLoaded()) then
+    print("waiting for game")
+    game.Loaded:Wait()
+end
+
+setfpscap(0)
+
+local players = game:GetService("Players")
+local player = players.LocalPlayer 
+
+if not (player.Character) then
+    print("waiting for char")
+    player.CharacterAdded:Wait()
+end
+
+local char = player.Character 
+local root = char.PrimaryPart
+
+function getremotes()
+    for i,v in next,getgc(true) do
+        if not (type(v) == "table") then continue end
+        if not (rawget(v, "framework")) then continue end 
+        return rawget(v, "framework").Remotes
+    end
+end
+print("waiting for remotes")
+repeat task.wait() until getremotes()
+
+local remotes = getremotes()
+local blockremote = remotes.Block
+local attackremote = remotes.Attack
+
+if (getgenv().todisconnect) then
+    for i,v in (getgenv().todisconnect) do 
+        v:Disconnect()
+    end 
+end
+
+local function randomFloat(min, max)
+    return min + math.random() * (max - min)
+end
+
+local players = game:GetService("Players")
+local player = players.LocalPlayer 
+local char = player.Character 
+local root = char.PrimaryPart
+
+--[[
+char.Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+    if (char.Humanoid.WalkSpeed == 3) then 
+        char.Humanoid.WalkSpeed = 16
+    end
+    if (char.Humanoid.WalkSpeed == 0) then 
+        char.Humanoid.WalkSpeed = 16
+    end
+end)]]
+
+local uis = game:GetService("UserInputService")
+
+getgenv().todisconnect = getgenv().todisconnect or {}
+local cache = {}
+
+cache.parruenabletrf = true
+cache.blockdist = 16.5
+
+local mouse = player:GetMouse()
+local camera = workspace.CurrentCamera
+local function getclosesttomouse()
+    local dist = math.huge
+    local target 
+    local pos
+
+    for i,v in (players:GetChildren()) do
+        if not (v.Character) then continue end
+        if (v == player) then continue end
+
+        local tplayer = v
+        local tchar = tplayer.Character
+        if not (tchar.PrimaryPart) then continue end
+        local troot = tchar.PrimaryPart 
+
+        local pos1,screen = camera:WorldToViewportPoint(troot.Position);pos1=Vector2.new(pos1.X,pos1.Y)
+        if not (screen) then continue end
+        local pos2 = Vector2.new(mouse.X, mouse.Y)
+
+        local tdist = (pos1 - pos2).Magnitude
+
+        if (tdist < dist) then
+            target = v
+            dist = tdist
+            pos = pos1
+        end
+    end
+
+    return target,dist,pos
+end
+
+getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
+    if (g) then return end 
+
+    if (i.UserInputType == Enum.UserInputType.Keyboard) then
+
+        if (i.KeyCode == Enum.KeyCode.X) then
+            if not (cache.selectingplayer) then
+                cache.selectingplayer = true 
+    
+                cache.screenguigyatt = Instance.new("ScreenGui")
+                local screenGui = cache.screenguigyatt
+                screenGui.Parent = gethui()
+    
+                local line = Instance.new("Frame")
+                line.AnchorPoint = Vector2.new(0.5, 0.5)
+                line.BackgroundColor3 = Color3.new(1, 1, 1)
+                line.BorderSizePixel = 0 
+                line.Parent = screenGui
+    
+                cache.selectplayerrender = game:GetService("RunService").RenderStepped:Connect(function()
+                    local t,d,p = getclosesttomouse()
+                    if not (t) then line.BackgroundTransparency = 1 return end
+                    line.BackgroundTransparency = 0
+
+                    cache.selectedplayer = t
+                
+                    local startPos, endPos = Vector2.new(mouse.X, mouse.Y), p
+                    local direction = endPos - startPos
+                    local distance = direction.Magnitude
+                    local angle = math.atan2(direction.Y, direction.X)
+                
+                    if not (cache.lineposset) then
+                        cache.lineposset = true 
+    
+                        line.Position = UDim2.new(0, (startPos.X + endPos.X) / 2, 0, (startPos.Y + endPos.Y) / 2)
+                        line.Size = UDim2.new(0, distance, 0, 2)
+                        line.Rotation = math.deg(angle)
+                    end 
+    
+                    game:GetService("TweenService"):Create(line,TweenInfo.new(.2,Enum.EasingStyle.Quint),{ Position = UDim2.new(0, (startPos.X + endPos.X) / 2, 0, (startPos.Y + endPos.Y) / 2) }):Play()
+                    game:GetService("TweenService"):Create(line,TweenInfo.new(.2,Enum.EasingStyle.Quint),{ Size = UDim2.new(0, distance, 0, 2) }):Play()
+                    game:GetService("TweenService"):Create(line,TweenInfo.new(.2,Enum.EasingStyle.Quint),{ Rotation = math.deg(angle) }):Play()
+                end)
+
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = "Select your target.",
+                    Text = "",
+                    Icon = "",
+                    Duration = 3,
+                })
+            else 
+                cache.lineposset = nil
+                cache.selectingplayer = nil 
+                cache.selectedplayer = nil
+                cache.selectplayerrender:Disconnect()
+                cache.screenguigyatt:Destroy()
+            end 
+        end
+
+        if (i.KeyCode == Enum.KeyCode.P) then
+            if (cache.selectingplayer) then
+                if (getgenv().todisconnect.ghuydir) then
+                    getgenv().todisconnect.ghuydir:Disconnect()
+                    getgenv().todisconnect.iuyhrg:Disconnect()
+                end 
+    
+                local tplayer = cache.selectedplayer
+                local tchar = tplayer.Character
+                local troot = tchar.PrimaryPart 
+                
+                local blacklistedanims = {
+                    ["rbxassetid://6849491789"] = true,
+                    ["rbxassetid://6835294624"] = true,
+                    ["rbxassetid://6691954521"] = true,
+                    ["rbxassetid://6849489471"] = true,
+                    ["rbxassetid://6768460286"] = true,
+                    ["rbxassetid://6849692501"] = true,
+                }
+                
+                getgenv().todisconnect.ghuydir = tchar.Humanoid.AnimationPlayed:Connect(function(a)
+                    if not (blockremote) then return end
+                    if (string.find(a.Animation.AnimationId, "roblox.com")) then return end
+                    if (blacklistedanims[a.Animation.AnimationId]) then return end
+
+                    if not ((troot.Position - root.Position).Magnitude < cache.blockdist) then return end
+
+                    local blocking = false; for i,v in (game:GetService("ReplicatedStorage").shared:GetChildren()) do
+                        if (v:IsA("Highlight") and v.Adornee and v.Adornee.Parent == tchar) then blocking = true end 
+                    end 
+
+                    if (blocking) then return end
+
+                    if not (player.PlayerGui.Combat.Main.Block.Bar.UIGradient.Offset.X > .54) then
+                        attackremote:FireServer("Punch")
+                        return
+                    end 
+
+                    coroutine.wrap(function()
+                        task.wait(.4)
+                        blockremote:InvokeServer(Enum.UserInputState.End)
+                    end)()
+                    blockremote:InvokeServer(Enum.UserInputState.Begin)
+                end)
+
+                getgenv().todisconnect.iuyhrg = game:GetService("ReplicatedStorage").shared.ChildAdded:Connect(function(p)
+                    if not (p:IsA("Highlight") and p.Adornee and p.Adornee.Parent == tchar) then return end
+                    if not ((troot.Position - root.Position).Magnitude < cache.blockdist) then return end
+
+                    local lasttrans = p.FillTransparency
+            
+                    local to;to=game:GetService("RunService").RenderStepped:Connect(function()
+                        if (p.Parent == nil) then to:Disconnect() end
+
+                        if (p.FillTransparency > lasttrans) then
+                            attackremote:FireServer("Punch")
+                        end 
+                        lasttrans = p.FillTransparency
+                    end)
+                end)
+    
+                game.StarterGui:SetCore("SendNotification", {
+                    Title = "Target selected",
+                    Text = "Target: "..tplayer.Name,
+                    Icon = "",
+                    Duration = 3,
+                })
+            end 
+    
+            cache.lineposset = nil
+            cache.selectingplayer = nil 
+            cache.selectedplayer = nil
+            cache.selectplayerrender:Disconnect()
+            cache.screenguigyatt:Destroy()
+        end
+
+        if (i.KeyCode == Enum.KeyCode.F) then
+            cache.blockdist -= 1
+
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Increased range",
+                Text = "Range: "..cache.blockdist,
+                Icon = "",
+                Duration = 3,
+            })
+        end
+
+        if (i.KeyCode == Enum.KeyCode.G) then
+            cache.blockdist += 1
+
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Decreased range",
+                Text = "Range: "..cache.blockdist,
+                Icon = "",
+                Duration = 3,
+            })
+        end
+
+        if (i.KeyCode == Enum.KeyCode.R) then
+            cache.parruenabletrf = not cache.parruenabletrf
+
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "Parry state change",
+                Text = "Enabled: "..cache.parruenabletrf,
+                Icon = "",
+                Duration = 3,
+            })
+        end
+    end
+end)
+
+game.StarterGui:SetCore("SendNotification", {
+    Title = "Successfully Executed.",
+    Text = "Auto Parry",
+    Icon = "",
+    Duration = 3,
+})
+
+queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/ybahopper/hopperdata/refs/heads/main/persist"))
