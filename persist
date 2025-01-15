@@ -172,6 +172,7 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                     ["rbxassetid://6849489471"] = true,
                     ["rbxassetid://6768460286"] = true,
                     ["rbxassetid://6849692501"] = true,
+                    ["rbxassetid://7814518374"] = true,
                 }
                 
                 getgenv().todisconnect.ghuydir = tchar.Humanoid.AnimationPlayed:Connect(function(a)
@@ -182,21 +183,27 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                     if not ((troot.Position - root.Position).Magnitude < cache.blockdist) then return end
 
                     local blocking = false; for i,v in (game:GetService("ReplicatedStorage").shared:GetChildren()) do
-                        if (v:IsA("Highlight") and v.Adornee and v.Adornee.Parent == tchar) then blocking = true end 
+                        if (v:IsA("Highlight") and v.Adornee and v.Adornee.Parent == tchar and v.FillTransparency < 1) then blocking = true end 
                     end 
 
                     if (blocking) then return end
 
-                    if not (player.PlayerGui.Combat.Main.Block.Bar.UIGradient.Offset.X > .54) then
+                    task.wait(math.random() * 0.1)
+
+                    if not (player.PlayerGui.Combat.Main.Block.Bar.UIGradient.Offset.X > .5) then
                         attackremote:FireServer("Punch")
                         return
                     end 
 
+                    local to
                     coroutine.wrap(function()
-                        task.wait(.4)
-                        blockremote:InvokeServer(Enum.UserInputState.End)
+                        to=game:GetService("RunService").RenderStepped:Connect(function()
+                            blockremote:InvokeServer(Enum.UserInputState.Begin)
+                        end)
                     end)()
-                    blockremote:InvokeServer(Enum.UserInputState.Begin)
+                    task.wait(.4)
+                    to:Disconnect()
+                    blockremote:InvokeServer(Enum.UserInputState.End)
                 end)
 
                 getgenv().todisconnect.iuyhrg = game:GetService("ReplicatedStorage").shared.ChildAdded:Connect(function(p)
