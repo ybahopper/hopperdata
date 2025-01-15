@@ -119,7 +119,6 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                 cache.selectplayerrender = game:GetService("RunService").RenderStepped:Connect(function()
                     local t,d,p = getclosesttomouse()
                     if not (t) then line.BackgroundTransparency = 1 return end
-                    line.BackgroundTransparency = 0
 
                     cache.selectedplayer = t
                 
