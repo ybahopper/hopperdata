@@ -60,6 +60,7 @@ local uis = game:GetService("UserInputService")
 getgenv().todisconnect = getgenv().todisconnect or {}
 local cache = {}
 
+
 cache.parruenabletrf = true
 cache.blockdist = 16.5
 
@@ -112,6 +113,7 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                 line.AnchorPoint = Vector2.new(0.5, 0.5)
                 line.BackgroundColor3 = Color3.new(1, 1, 1)
                 line.BorderSizePixel = 0 
+                line.BackgroundTransparency = 1
                 line.Parent = screenGui
     
                 cache.selectplayerrender = game:GetService("RunService").RenderStepped:Connect(function()
@@ -138,13 +140,6 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                     game:GetService("TweenService"):Create(line,TweenInfo.new(.2,Enum.EasingStyle.Quint),{ Size = UDim2.new(0, distance, 0, 2) }):Play()
                     game:GetService("TweenService"):Create(line,TweenInfo.new(.2,Enum.EasingStyle.Quint),{ Rotation = math.deg(angle) }):Play()
                 end)
-
-                game.StarterGui:SetCore("SendNotification", {
-                    Title = "Select your target.",
-                    Text = "",
-                    Icon = "",
-                    Duration = 3,
-                })
             else 
                 cache.lineposset = nil
                 cache.selectingplayer = nil 
@@ -173,12 +168,15 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                     ["rbxassetid://6768460286"] = true,
                     ["rbxassetid://6849692501"] = true,
                     ["rbxassetid://7814518374"] = true,
+                    ["rbxassetid://7814478630"] = true,
                 }
                 
                 getgenv().todisconnect.ghuydir = tchar.Humanoid.AnimationPlayed:Connect(function(a)
                     if not (blockremote) then return end
                     if (string.find(a.Animation.AnimationId, "roblox.com")) then return end
                     if (blacklistedanims[a.Animation.AnimationId]) then return end
+                    if not (cache.parruenabletrf) then return end
+                    setclipboard(a.Animation.AnimationId)
 
                     if not ((troot.Position - root.Position).Magnitude < cache.blockdist) then return end
 
@@ -188,10 +186,10 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
 
                     if (blocking) then return end
 
-                    task.wait(math.random() * 0.1)
+                    task.wait(math.random() * 0.15)
 
                     if not (player.PlayerGui.Combat.Main.Block.Bar.UIGradient.Offset.X > .5) then
-                        attackremote:FireServer("Punch")
+                        attackremote:FireServer("LKick")
                         return
                     end 
 
@@ -206,28 +204,16 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
                     blockremote:InvokeServer(Enum.UserInputState.End)
                 end)
 
-                getgenv().todisconnect.iuyhrg = game:GetService("ReplicatedStorage").shared.ChildAdded:Connect(function(p)
-                    if not (p:IsA("Highlight") and p.Adornee and p.Adornee.Parent == tchar) then return end
+                getgenv().todisconnect.iuyhrg = workspace.Sounds.DescendantAdded:Connect(function(p)
+                    if not (cache.parruenabletrf) then return end
+                    if not (p:IsA("Sound")) then return end 
+                    if not (p.SoundId == "rbxassetid://4549835866") then return end 
+                    if not (p.PlaybackSpeed < 1.9) then return end
+                    if not ((p.Parent.Position - troot.Position).Magnitude > .01) then return end
                     if not ((troot.Position - root.Position).Magnitude < cache.blockdist) then return end
-
-                    local lasttrans = p.FillTransparency
-            
-                    local to;to=game:GetService("RunService").RenderStepped:Connect(function()
-                        if (p.Parent == nil) then to:Disconnect() end
-
-                        if (p.FillTransparency > lasttrans) then
-                            attackremote:FireServer("Punch")
-                        end 
-                        lasttrans = p.FillTransparency
-                    end)
+                
+                    attackremote:FireServer("LKick")
                 end)
-    
-                game.StarterGui:SetCore("SendNotification", {
-                    Title = "Target selected",
-                    Text = "Target: "..tplayer.Name,
-                    Icon = "",
-                    Duration = 3,
-                })
             end 
     
             cache.lineposset = nil
@@ -239,44 +225,16 @@ getgenv().todisconnect.aiudw = uis.InputBegan:Connect(function(i,g)
 
         if (i.KeyCode == Enum.KeyCode.F) then
             cache.blockdist -= 1
-
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Increased range",
-                Text = "Range: "..cache.blockdist,
-                Icon = "",
-                Duration = 3,
-            })
         end
 
         if (i.KeyCode == Enum.KeyCode.G) then
             cache.blockdist += 1
-
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Decreased range",
-                Text = "Range: "..cache.blockdist,
-                Icon = "",
-                Duration = 3,
-            })
         end
 
         if (i.KeyCode == Enum.KeyCode.R) then
             cache.parruenabletrf = not cache.parruenabletrf
-
-            game.StarterGui:SetCore("SendNotification", {
-                Title = "Parry state change",
-                Text = "Enabled: "..cache.parruenabletrf,
-                Icon = "",
-                Duration = 3,
-            })
         end
     end
 end)
-
-game.StarterGui:SetCore("SendNotification", {
-    Title = "Successfully Executed.",
-    Text = "Auto Parry",
-    Icon = "",
-    Duration = 3,
-})
 
 queue_on_teleport(game:HttpGet("https://raw.githubusercontent.com/ybahopper/hopperdata/refs/heads/main/persist"))
